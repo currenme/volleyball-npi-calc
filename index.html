@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Research-based match win probabilities and reconstructed historical NCAA Division III women's volleyball NPI ratings.">
+  <title>Volleyball NPI Explorer</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="wordmark" href="./"><span class="mark" aria-hidden="true">N</span><span>Volleyball NPI Explorer</span></a>
+      <span class="header-tag">Division III · Women's volleyball</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="intro">
+      <p class="eyebrow">COACHING RESEARCH PROTOTYPE</p>
+      <h1>How likely are we to win?</h1>
+      <p>Compare two NCAA Power Index ratings, or look up a team's reconstructed historical rating to explore a matchup.</p>
+      <div class="facts"><span><strong>10,385</strong> historical matches</span><span><strong>2024–2025</strong> training seasons</span><span>Free · No account required</span></div>
+    </section>
+
+    <section class="panel calculator" aria-labelledby="calculator-title">
+      <div class="section-heading"><div><p class="eyebrow">01 / MATCHUP</p><h2 id="calculator-title">Win probability</h2></div><button type="button" class="secondary small" id="swap">Swap teams</button></div>
+      <div class="input-grid">
+        <div><label for="our-npi">Your team's NPI</label><input id="our-npi" type="number" inputmode="decimal" step="any" min="0" value="60"><p class="input-note" id="our-source">Manual input</p></div>
+        <div><label for="opp-npi">Opponent's NPI</label><input id="opp-npi" type="number" inputmode="decimal" step="any" min="0" value="55"><p class="input-note" id="opp-source">Manual input</p></div>
+      </div>
+      <div id="prediction" aria-live="polite">
+        <div class="prob-grid"><div><p class="muted">Your team</p><p class="prob primary" id="our-prob">—</p></div><div class="opponent"><p class="muted">Opponent</p><p class="prob" id="opp-prob">—</p></div></div>
+        <div class="prob-bar" aria-hidden="true"><span id="prob-fill"></span></div>
+        <p class="match-detail" id="match-detail"></p>
+        <p id="prediction-warning" class="notice" hidden></p>
+      </div>
+      <p class="subtle">Estimated match win probability, not a guarantee. This NPI-only model does not account for venue, injuries or roster changes.</p>
+    </section>
+
+    <section class="panel history" aria-labelledby="history-title">
+      <div class="section-heading"><div><p class="eyebrow">02 / HISTORICAL LOOKUP</p><h2 id="history-title">Find a team's NPI</h2></div><span class="archive-tag">2024–2025 archive</span></div>
+      <p class="muted section-copy">Search by school, choose a season and select an as-of date. Historical values are reconstructed from match results, not live NCAA rankings.</p>
+      <p id="load-status" class="notice" role="status">Loading historical ratings…</p>
+      <div id="history-controls" hidden>
+        <div class="history-grid">
+          <div><label for="season">Season</label><select id="season"><option value="2025">2025</option><option value="2024">2024</option></select></div>
+          <div class="search-field"><label for="team-search">Find a school</label><input type="search" id="team-search" placeholder="e.g. MIT, Juniata" autocomplete="off"><label for="team" class="sr-only">Select a school</label><select id="team"></select><p id="search-count" class="input-note"></p></div>
+          <div><label for="as-of">As-of date</label><input type="date" id="as-of"><p class="input-note" id="date-range"></p></div>
+        </div>
+        <div class="lookup-result" aria-live="polite">
+          <div><p class="muted" id="selected-team">Select a team</p><p class="lookup-value" id="lookup-npi">—</p><p class="input-note" id="lookup-date"></p></div>
+          <div class="lookup-actions"><button type="button" id="use-ours" disabled>Use as your team</button><button type="button" class="secondary" id="use-opp" disabled>Use as opponent</button></div>
+        </div>
+        <p class="subtle">Ratings include games through the displayed rating date. To analyze a historical match without looking ahead, choose the day before that match. Ratings from a prior season are not current ratings.</p>
+      </div>
+    </section>
+
+    <section class="panel trend" aria-labelledby="trend-title">
+      <div class="section-heading"><div><p class="eyebrow">03 / SEASON TREND</p><h2 id="trend-title">NPI over time</h2></div><span id="trend-label" class="muted"></span></div>
+      <p id="trend-empty" class="muted">Select a historical team to see its ratings throughout the season.</p>
+      <svg id="trend-chart" viewBox="0 0 640 250" role="img" aria-label="Historical NPI trend" hidden></svg>
+      <p class="subtle" id="trend-summary"></p>
+    </section>
+
+    <section class="method" aria-labelledby="method-title">
+      <h2 id="method-title">About this tool</h2>
+      <p>Developed as a research prototype for NCAA Division III women's volleyball scheduling. The probability model was fitted to 10,385 matches across the 2024 and 2025 seasons, using both teams' most recent NPI from strictly before the match date.</p>
+      <details>
+        <summary>Model and data limitations</summary>
+        <p>The monotone saturating logistic model estimates your team's probability as <code>1 / (1 + exp(−z))</code>, with <code>z = sign(d) × 4.4122334168 × (1 − exp(−|d| / 15.7237177853))</code> and <code>d = your NPI − opponent NPI</code>. Equal NPIs yield 50%. The model assumes no venue adjustment, and estimates for large NPI differences are based on relatively sparse data.</p>
+        <p>The historical archive uses the frozen reconstructed daily NPI matrices, rounded to three decimals for display. The final 2024 reconstruction matches all 419 published NPIs at three-decimal precision; some midseason values differ from official snapshots. The 2025 matrix lacks ratings for Virginia Wesleyan (Batten) and Principia. Missing historical ratings are not imputed.</p>
+        <p>Model fit and evaluation were performed on completed historical games; held-out season evaluation measures transfer, not prospective live accuracy. This is an independent research tool, not an official NCAA product.</p>
+      </details>
+      <p><a href="https://stats.ncaa.org/selection_rankings" target="_blank" rel="noopener">Official NCAA selection rankings</a> · Use current official NPIs for upcoming matches.</p>
+    </section>
+  </main>
+  <footer class="wrap footer">Volleyball NPI Explorer · Historical research prototype · 2024–2025 data</footer>
+</body>
+</html>
