@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Research-based match win probabilities and reconstructed historical NCAA Division III women's volleyball NPI ratings.">
   <title>Volleyball NPI Explorer</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="app.js" defer></script>
+  <link rel="stylesheet" href="style.css?v=2">
+  <script src="app.js?v=2" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -29,13 +29,22 @@
         <div><label for="our-npi">Your team's NPI</label><input id="our-npi" type="number" inputmode="decimal" step="any" min="0" value="60"><p class="input-note" id="our-source">Manual input</p></div>
         <div><label for="opp-npi">Opponent's NPI</label><input id="opp-npi" type="number" inputmode="decimal" step="any" min="0" value="55"><p class="input-note" id="opp-source">Manual input</p></div>
       </div>
+      <fieldset class="venue-field">
+        <legend>Who is the home team?</legend>
+        <div class="venue-options" role="group" aria-label="Home team designation">
+          <button type="button" class="venue-option" id="venue-home" aria-pressed="false">Your team</button>
+          <button type="button" class="venue-option" id="venue-away" aria-pressed="false">Opponent</button>
+          <button type="button" class="venue-option" id="venue-none" aria-pressed="true">No adjustment</button>
+        </div>
+        <p class="input-note">Uses NCAA home/away designations. For neutral or unknown sites, choose no adjustment.</p>
+      </fieldset>
       <div id="prediction" aria-live="polite">
         <div class="prob-grid"><div><p class="muted">Your team</p><p class="prob primary" id="our-prob">—</p></div><div class="opponent"><p class="muted">Opponent</p><p class="prob" id="opp-prob">—</p></div></div>
         <div class="prob-bar" aria-hidden="true"><span id="prob-fill"></span></div>
         <p class="match-detail" id="match-detail"></p>
         <p id="prediction-warning" class="notice" hidden></p>
       </div>
-      <p class="subtle">Estimated match win probability, not a guarantee. This NPI-only model does not account for venue, injuries or roster changes.</p>
+      <p class="subtle">Estimated match win probability based on NPI and selected home/away designation.</p>
     </section>
 
     <section class="panel history" aria-labelledby="history-title">
@@ -63,18 +72,7 @@
       <p class="subtle" id="trend-summary"></p>
     </section>
 
-    <section class="method" aria-labelledby="method-title">
-      <h2 id="method-title">About this tool</h2>
-      <p>Developed as a research prototype for NCAA Division III women's volleyball scheduling. The probability model was fitted to 10,385 matches across the 2024 and 2025 seasons, using both teams' most recent NPI from strictly before the match date.</p>
-      <details>
-        <summary>Model and data limitations</summary>
-        <p>The monotone saturating logistic model estimates your team's probability as <code>1 / (1 + exp(−z))</code>, with <code>z = sign(d) × 4.4122334168 × (1 − exp(−|d| / 15.7237177853))</code> and <code>d = your NPI − opponent NPI</code>. Equal NPIs yield 50%. The model assumes no venue adjustment, and estimates for large NPI differences are based on relatively sparse data.</p>
-        <p>The historical archive uses the frozen reconstructed daily NPI matrices, rounded to three decimals for display. The final 2024 reconstruction matches all 419 published NPIs at three-decimal precision; some midseason values differ from official snapshots. The 2025 matrix lacks ratings for Virginia Wesleyan (Batten) and Principia. Missing historical ratings are not imputed.</p>
-        <p>Model fit and evaluation were performed on completed historical games; held-out season evaluation measures transfer, not prospective live accuracy. This is an independent research tool, not an official NCAA product.</p>
-      </details>
-      <p><a href="https://stats.ncaa.org/selection_rankings" target="_blank" rel="noopener">Official NCAA selection rankings</a> · Use current official NPIs for upcoming matches.</p>
-    </section>
   </main>
-  <footer class="wrap footer">Volleyball NPI Explorer · Historical research prototype · 2024–2025 data</footer>
+  <footer class="wrap footer">Volleyball NPI Explorer · 2024–2025 data</footer>
 </body>
 </html>

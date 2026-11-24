@@ -1,12 +1,15 @@
 "use strict";
 
-// Coefficients from results/win_probability_2024_2025/model_coefficients.csv
-// pooled,S3_monotone_saturating. No backend or external library is required.
-const MODEL = Object.freeze({a: 4.412233416767876, scale: 15.72371778530277});
+// Pooled 2024–2025 designation-adjusted fit, 10,385 matches.
+// Source: results/home_away_2024_2025/venue_model_coefficients.csv
+// Thesis commit: 1110ecafb69d3153e4434897380b06aee1b073c1
+// homeSign: +1 = your team home; -1 = opponent home; 0 = no adjustment.
+const MODEL = Object.freeze({"a":4.45028882,"scale":15.87323239,"homeLogOdds":0.2646046});
 
-function winProbability(ours, opponent) {
+function winProbability(ours, opponent, homeSign = 0) {
   const difference = ours - opponent;
-  const z = Math.sign(difference) * MODEL.a * (-Math.expm1(-Math.abs(difference) / MODEL.scale));
+  const z = Math.sign(difference) * MODEL.a * (-Math.expm1(-Math.abs(difference) / MODEL.scale))
+    + MODEL.homeLogOdds * homeSign;
   return 1 / (1 + Math.exp(-z));
 }
 
@@ -16,6 +19,19 @@ const oppInput = $("opp-npi");
 const inputSources = {ours: "Manual input", opp: "Manual input"};
 let archive = null;
 let selectedRating = null;
+let homeSign = 0;
+const venueButtons = [[1, $("venue-home")], [-1, $("venue-away")], [0, $("venue-none")]];
+
+function setVenue(sign) {
+  homeSign = sign;
+  for (const [value, button] of venueButtons) {
+    if (button) button.setAttribute("aria-pressed", String(value === sign));
+  }
+  calculate();
+}
+for (const [sign, button] of venueButtons) {
+  if (button) button.addEventListener("click", () => setVenue(sign));
+}
 
 function calculate() {
   const a = ourInput.valueAsNumber;
@@ -31,12 +47,13 @@ function calculate() {
     return;
   }
   const gap = Math.abs(a-b);
-  const p = winProbability(a,b);
+  const p = winProbability(a,b,homeSign);
   $("our-prob").textContent = (p*100).toFixed(1) + "%";
   $("opp-prob").textContent = ((1-p)*100).toFixed(1) + "%";
   $("prob-fill").style.width = (100*p) + "%";
   $("match-detail").textContent = "NPI difference: " + gap.toFixed(2) +
-    " points · " + (a===b ? "Equal ratings" : a>b ? "Your team is favored" : "Opponent is favored");
+    " points · " + (Math.abs(p-.5)<1e-12 ? "Even matchup" : p>.5 ? "Your team is favored" : "Opponent is favored") +
+    " · " + (homeSign===1 ? "Your team home" : homeSign===-1 ? "Opponent home" : "No home/away adjustment");
   const cautions = [];
   if (gap >= 20) cautions.push("Large NPI differences are less well represented in the training data; treat this estimate cautiously.");
   if (a>100 || b>100) cautions.push("This rating is outside the usual NPI range; the estimate may be extrapolating.");
@@ -56,7 +73,7 @@ for (const [input,key] of [[ourInput,"ours"],[oppInput,"opp"]]) {
 $("swap").addEventListener("click", () => {
   [ourInput.value,oppInput.value] = [oppInput.value,ourInput.value];
   [inputSources.ours,inputSources.opp] = [inputSources.opp,inputSources.ours];
-  calculate();
+  setVenue(-homeSign);
 });
 
 function searchKey(s) {
